@@ -368,8 +368,25 @@ namespace usb_pad
 				UpdateHatSwitch();
 
 				buf[0] = data.steering & 0xFF;
-				buf[1] = data.throttle & 0xFF;
-				buf[2] = data.brake & 0xFF;
+
+				const float center = 127.0F;
+				if (data.throttle < data.brake)
+				{
+					const float rate = (255.0F - data.throttle) / 255.0F;
+					buf[1] = center - center * rate;
+				}
+				else if (data.brake < data.throttle)
+				{
+					const float rate = (255.0F - data.brake) / 255.0F;
+					buf[1] = center + center * rate;
+				}
+				else
+				{
+					buf[1] = center;
+				}
+
+				// Not working.
+				//buf[2] = data.brake & 0xAF;
 				buf[3] = data.hatswitch & 0x0F; // 4bits?
 				buf[3] |= (data.buttons & 0x0F) << 4; // 4 bits // TODO Or does it start at buf[4]?
 				buf[4] = (data.buttons >> 4) & 0x3F; // 10 - 4 = 6 bits
